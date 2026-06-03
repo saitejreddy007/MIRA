@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Business Representative — Full Architecture</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;500;600&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap');
+
+:root {
+  --bg: #050608;
+  --surface: #0c0e14;
+  --surface2: #111420;
+  --border: #1c2035;
+  --border2: #252a40;
+  --l1: #00ffa3;
+  --l2: #7c6dfa;
+  --l3: #fa6d6d;
+  --l4: #fac46d;
+  --l5: #6dcffa;
+  --l6: #d46dfa;
+  --convergence: #ffffff;
+  --text: #dde2f0;
+  --muted: #454d6a;
+  --muted2: #6b7499;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  padding: 48px 24px 80px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* HEADER */
+.masthead {
+  text-align: center;
+  margin-bottom: 72px;
+  position: relative;
+}
+
+.masthead::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 200px;
+  background: radial-gradient(ellipse, rgba(124,109,250,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.masthead-eyebrow {
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--muted2);
+  margin-bottom: 12px;
+}
+
+.masthead-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(36px, 7vw, 72px);
+  letter-spacing: 3px;
+  line-height: 1;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #fff 0%, #7c6dfa 50%, #00ffa3 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.masthead-sub {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: 15px;
+  color: var(--muted2);
+}
+
+/* LAYER COLOR MAP */
+.layer-legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 60px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted2);
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* MAIN CONTAINER */
+.architecture {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* LAYER BLOCK */
+.layer-block {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.layer-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.layer-header::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+
+.l1-block .layer-header::before { background: var(--l1); }
+.l2-block .layer-header::before { background: var(--l2); }
+.l3-block .layer-header::before { background: var(--l3); }
+.l4-block .layer-header::before { background: var(--l4); }
+.l5-block .layer-header::before { background: var(--l5); }
+.l6-block .layer-header::before { background: var(--l6); }
+.convergence-block .layer-header::before { background: linear-gradient(180deg, var(--l1), var(--l2), var(--l3), var(--l4), var(--l5), var(--l6)); }
+
+.layer-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  min-width: 60px;
+  text-align: center;
+}
+
+.l1-block .layer-num { background: rgba(0,255,163,0.1); color: var(--l1); border: 1px solid rgba(0,255,163,0.2); }
+.l2-block .layer-num { background: rgba(124,109,250,0.1); color: var(--l2); border: 1px solid rgba(124,109,250,0.2); }
+.l3-block .layer-num { background: rgba(250,109,109,0.1); color: var(--l3); border: 1px solid rgba(250,109,109,0.2); }
+.l4-block .layer-num { background: rgba(250,196,109,0.1); color: var(--l4); border: 1px solid rgba(250,196,109,0.2); }
+.l5-block .layer-num { background: rgba(109,207,250,0.1); color: var(--l5); border: 1px solid rgba(109,207,250,0.2); }
+.l6-block .layer-num { background: rgba(212,109,250,0.1); color: var(--l6); border: 1px solid rgba(212,109,250,0.2); }
+.convergence-block .layer-num { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.15); }
+
+.layer-title-wrap { flex: 1; }
+
+.layer-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(18px, 3vw, 26px);
+  letter-spacing: 2px;
+}
+
+.layer-tagline {
+  font-size: 11px;
+  color: var(--muted2);
+  margin-top: 2px;
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+}
+
+.layer-toggle {
+  font-size: 18px;
+  color: var(--muted);
+  transition: transform 0.3s;
+}
+
+.layer-block.open .layer-toggle {
+  transform: rotate(180deg);
+}
+
+/* LAYER BODY */
+.layer-body {
+  display: none;
+  padding: 0 24px 24px;
+  border-top: 1px solid var(--border);
+}
+
+.layer-block.open .layer-body {
+  display: block;
+}
+
+/* ENGINE GRID */
+.engine-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.engine {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.engine::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+}
+
+.l1-block .engine::after { background: linear-gradient(90deg, var(--l1), transparent); }
+.l2-block .engine::after { background: linear-gradient(90deg, var(--l2), transparent); }
+.l3-block .engine::after { background: linear-gradient(90deg, var(--l3), transparent); }
+.l4-block .engine::after { background: linear-gradient(90deg, var(--l4), transparent); }
+.l5-block .engine::after { background: linear-gradient(90deg, var(--l5), transparent); }
+.l6-block .engine::after { background: linear-gradient(90deg, var(--l6), transparent); }
+.convergence-block .engine::after { background: linear-gradient(90deg, #fff, transparent); }
+
+.engine-icon { font-size: 20px; margin-bottom: 8px; }
+
+.engine-name {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--text);
+  letter-spacing: 0.5px;
+}
+
+.engine-desc {
+  font-size: 11px;
+  color: var(--muted2);
+  line-height: 1.7;
+}
+
+.engine-items {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.engine-item {
+  font-size: 10px;
+  color: var(--muted2);
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  line-height: 1.5;
+}
+
+.engine-item::before {
+  content: '—';
+  color: var(--muted);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.engine-tag {
+  display: inline-block;
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  margin-top: 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.l1-block .engine-tag { background: rgba(0,255,163,0.08); color: var(--l1); }
+.l2-block .engine-tag { background: rgba(124,109,250,0.08); color: var(--l2); }
+.l3-block .engine-tag { background: rgba(250,109,109,0.08); color: var(--l3); }
+.l4-block .engine-tag { background: rgba(250,196,109,0.08); color: var(--l4); }
+.l5-block .engine-tag { background: rgba(109,207,250,0.08); color: var(--l5); }
+.l6-block .engine-tag { background: rgba(212,109,250,0.08); color: var(--l6); }
+.convergence-block .engine-tag { background: rgba(255,255,255,0.05); color: #aaa; }
+
+/* SECTION LABEL */
+.section-label {
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 20px 0 10px;
+}
+
+/* FLOW ROW */
+.flow-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 14px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.flow-step {
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: #0a0d18;
+  border: 1px solid var(--border2);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.flow-arrow {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* GRAPH VISUAL */
+.dual-graph {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.graph-box {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.graph-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted2);
+  margin-bottom: 12px;
+}
+
+.quadrant-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  height: 160px;
+}
+
+.quad {
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.quad-name {
+  font-weight: 600;
+  margin-bottom: 3px;
+  font-size: 10px;
+}
+
+.quad-desc {
+  color: var(--muted2);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.q-anger { background: rgba(250,109,109,0.06); border: 1px solid rgba(250,109,109,0.2); }
+.q-anger .quad-name { color: #fa6d6d; }
+.q-excited { background: rgba(0,255,163,0.06); border: 1px solid rgba(0,255,163,0.2); }
+.q-excited .quad-name { color: var(--l1); }
+.q-shame { background: rgba(250,196,109,0.06); border: 1px solid rgba(250,196,109,0.2); }
+.q-shame .quad-name { color: var(--l4); }
+.q-calm { background: rgba(0,255,163,0.1); border: 1px solid rgba(0,255,163,0.4); }
+.q-calm .quad-name { color: var(--l1); }
+
+.q-ht-cold { background: rgba(109,207,250,0.06); border: 1px solid rgba(109,207,250,0.2); }
+.q-ht-cold .quad-name { color: var(--l5); }
+.q-ht-warm { background: rgba(0,255,163,0.06); border: 1px solid rgba(0,255,163,0.2); }
+.q-ht-warm .quad-name { color: var(--l1); }
+.q-lt-cold { background: rgba(250,109,109,0.06); border: 1px solid rgba(250,109,109,0.2); }
+.q-lt-cold .quad-name { color: var(--l3); }
+.q-lt-warm { background: rgba(250,196,109,0.06); border: 1px solid rgba(250,196,109,0.2); }
+.q-lt-warm .quad-name { color: var(--l4); }
+
+.target-pill {
+  font-size: 8px;
+  background: var(--l1);
+  color: #000;
+  padding: 1px 5px;
+  border-radius: 2px;
+  font-weight: 700;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+/* CONSTITUTION BLOCK */
+.constitution {
+  background: #070a10;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+  font-size: 11px;
+  line-height: 2;
+}
+
+.c-key { color: var(--l1); }
+.c-val { color: var(--l4); }
+.c-dim { color: var(--muted2); }
+
+/* RESOLUTION ROW */
+.resolution-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.res-card {
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.res-genuine { background: rgba(0,255,163,0.05); border: 1px solid rgba(0,255,163,0.2); }
+.res-coincidental { background: rgba(250,196,109,0.05); border: 1px solid rgba(250,196,109,0.2); }
+.res-painful { background: rgba(250,109,109,0.05); border: 1px solid rgba(250,109,109,0.2); }
+
+.res-label { font-weight: 600; margin-bottom: 5px; font-size: 11px; }
+.res-genuine .res-label { color: var(--l1); }
+.res-coincidental .res-label { color: var(--l4); }
+.res-painful .res-label { color: var(--l3); }
+.res-body { color: var(--muted2); line-height: 1.6; font-size: 10px; }
+
+/* MEMORY LAYERS */
+.memory-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.mem-layer {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+}
+
+.mem-indicator {
+  width: 3px;
+  border-radius: 2px;
+  align-self: stretch;
+  min-height: 20px;
+  flex-shrink: 0;
+}
+
+.mem-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--l4);
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.mem-desc {
+  font-size: 10px;
+  color: var(--muted2);
+  line-height: 1.6;
+}
+
+/* CONVERGENCE PIPELINE */
+.pipeline {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.pipe-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+}
+
+.pipe-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0;
+}
+
+.pipe-content { flex: 1; }
+.pipe-title { font-size: 12px; color: var(--text); margin-bottom: 2px; }
+.pipe-sub { font-size: 10px; color: var(--muted2); }
+
+.pipe-layer-badge {
+  font-size: 9px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* DISCLOSURE TABLE */
+.disclosure-table {
+  margin-top: 16px;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.dt-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 1fr;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.dt-row:last-child { border-bottom: none; }
+
+.dt-row.header {
+  background: #0a0d18;
+}
+
+.dt-cell {
+  padding: 10px 14px;
+  font-size: 10px;
+  border-right: 1px solid var(--border);
+  line-height: 1.5;
+}
+
+.dt-cell:last-child { border-right: none; }
+
+.dt-row.header .dt-cell {
+  color: var(--muted2);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 9px;
+}
+
+/* REPLY TYPES */
+.reply-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.reply-card {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.reply-type {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--l6);
+  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+}
+
+.reply-example {
+  font-size: 10px;
+  color: var(--muted2);
+  font-style: italic;
+  margin-bottom: 6px;
+  font-family: 'Fraunces', serif;
+  font-weight: 300;
+}
+
+.reply-action {
+  font-size: 10px;
+  color: var(--muted2);
+  line-height: 1.5;
+}
+
+/* PERSONA CONSTITUTION */
+.persona-const {
+  background: #070a10;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 12px;
+  font-size: 11px;
+  line-height: 2;
+}
+
+.pc-key { color: var(--l3); }
+.pc-val { color: var(--l4); }
+
+/* DIVIDER */
+.section-div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 6px 0;
+}
+
+.div-line { flex: 1; height: 1px; background: var(--border); }
+.div-text { font-size: 9px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+
+/* CONNECTOR ARROWS */
+.connector {
+  display: flex;
+  justify-content: center;
+  padding: 6px 0;
+  color: var(--muted);
+  font-size: 20px;
+}
+
+/* FULL PIPELINE COLORS */
+.ps-l1 .pipe-num { background: rgba(0,255,163,0.12); color: var(--l1); }
+.ps-l2 .pipe-num { background: rgba(124,109,250,0.12); color: var(--l2); }
+.ps-l3 .pipe-num { background: rgba(250,109,109,0.12); color: var(--l3); }
+.ps-l4 .pipe-num { background: rgba(250,196,109,0.12); color: var(--l4); }
+.ps-l5 .pipe-num { background: rgba(109,207,250,0.12); color: var(--l5); }
+.ps-l6 .pipe-num { background: rgba(212,109,250,0.12); color: var(--l6); }
+.ps-all .pipe-num { background: rgba(255,255,255,0.06); color: #fff; }
+
+.ps-l1 .pipe-layer-badge { background: rgba(0,255,163,0.08); color: var(--l1); }
+.ps-l2 .pipe-layer-badge { background: rgba(124,109,250,0.08); color: var(--l2); }
+.ps-l3 .pipe-layer-badge { background: rgba(250,109,109,0.08); color: var(--l3); }
+.ps-l4 .pipe-layer-badge { background: rgba(250,196,109,0.08); color: var(--l4); }
+.ps-l5 .pipe-layer-badge { background: rgba(109,207,250,0.08); color: var(--l5); }
+.ps-l6 .pipe-layer-badge { background: rgba(212,109,250,0.08); color: var(--l6); }
+.ps-all .pipe-layer-badge { background: rgba(255,255,255,0.05); color: #aaa; }
+
+@media (max-width: 600px) {
+  .dual-graph { grid-template-columns: 1fr; }
+  .dt-row { grid-template-columns: 1fr; }
+  .dt-cell { border-right: none; border-bottom: 1px solid var(--border); }
+}
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-eyebrow">Complete Architecture · All Six Layers · End to End</div>
+  <div class="masthead-title">AI Business Representative</div>
+  <div class="masthead-sub">The world's first AI that speaks in your voice, feels your clients, and recovers your money.</div>
+</div>
+
+<div class="layer-legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--l1)"></div>L1 Brand Voice</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--l2)"></div>L2 Behavioral Intelligence</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--l3)"></div>L3 Persona</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--l4)"></div>L4 Relationship Memory</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--l5)"></div>L5 Ethical Transparency</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--l6)"></div>L6 Two-Way Conversation</div>
+</div>
+
+<div class="architecture">
+
+<!-- LAYER 1 -->
+<div class="layer-block l1-block open" onclick="toggle(this)">
+  <div class="layer-header">
+    <div class="layer-num">L — 01</div>
+    <div class="layer-title-wrap">
+      <div class="layer-name" style="color:var(--l1)">Brand Voice</div>
+      <div class="layer-tagline">Indistinguishable from the business owner writing personally</div>
+    </div>
+    <div class="layer-toggle">▾</div>
+  </div>
+  <div class="layer-body">
+
+    <div class="section-label">Onboarding Flow</div>
+    <div class="flow-row">
+      <span class="flow-step">Business Name</span><span class="flow-arrow">→</span>
+      <span class="flow-step">8 Questions + MCQs</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Voice Constitution V1.0</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Voice Match Game (5 rounds)</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Constitution Locked</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Silent Evolution</span>
+    </div>
+
+    <div class="section-label">Five Level Voice DNA Analyzers</div>
+    <div class="engine-grid">
+      <div class="engine">
+        <div class="engine-icon">👁</div>
+        <div class="engine-name">Surface Analyzer</div>
+        <div class="engine-items">
+          <div class="engine-item">Greeting style — Hey vs Hi vs Dear vs Hello</div>
+          <div class="engine-item">Sign-off patterns — Thanks vs Regards vs Cheers</div>
+          <div class="engine-item">Punctuation habits and emoji usage</div>
+          <div class="engine-item">Paragraph and message length baseline</div>
+          <div class="engine-item">Capitalization personality</div>
+        </div>
+        <span class="engine-tag">Level 1</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">🔤</div>
+        <div class="engine-name">Vocabulary Analyzer</div>
+        <div class="engine-items">
+          <div class="engine-item">Power words used repeatedly</div>
+          <div class="engine-item">Forbidden words — never used by this owner</div>
+          <div class="engine-item">Industry terminology comfort level</div>
+          <div class="engine-item">Filler phrases and transition patterns</div>
+          <div class="engine-item">Regional language markers — Indian English authenticity</div>
+        </div>
+        <span class="engine-tag">Level 2</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">🏗</div>
+        <div class="engine-name">Structure Analyzer</div>
+        <div class="engine-items">
+          <div class="engine-item">Opening pattern — warmth first vs context first vs ask first</div>
+          <div class="engine-item">Reasoning style — show reasoning vs just state</div>
+          <div class="engine-item">Bad news delivery — soften vs direct</div>
+          <div class="engine-item">Question vs statement preference</div>
+          <div class="engine-item">Bullet points vs pure prose tendency</div>
+        </div>
+        <span class="engine-tag">Level 3</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">❤️</div>
+        <div class="engine-name">Emotional Analyzer</div>
+        <div class="engine-items">
+          <div class="engine-item">Warmth expression style — how they show care</div>
+          <div class="engine-item">Authority expression — confident vs collaborative</div>
+          <div class="engine-item">Awkward situation handling patterns</div>
+          <div class="engine-item">How they push back or disagree</div>
+          <div class="engine-item">Celebration and acknowledgment style</div>
+        </div>
+        <span class="engine-tag">Level 4</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">🧠</div>
+        <div class="engine-name">Cognitive Fingerprint Analyzer</div>
+        <div class="engine-items">
+          <div class="engine-item">Linear — point A to B, no detours</div>
+          <div class="engine-item">Contextual — background before ask always</div>
+          <div class="engine-item">Empathy-first — acknowledge person before anything</div>
+          <div class="engine-item">Authority-first — position stated, then reasoned</div>
+          <div class="engine-item">We vs I vs You framing preference</div>
+        </div>
+        <span class="engine-tag">Level 5</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">⚡</div>
+        <div class="engine-name">Silent Evolution Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">Every owner override triggers diff analysis</div>
+          <div class="engine-item">Word replacements update vocabulary bank</div>
+          <div class="engine-item">Structure changes update structural rules</div>
+          <div class="engine-item">Constitution version ticks up surgically</div>
+          <div class="engine-item">Owner never knows it's learning</div>
+        </div>
+        <span class="engine-tag">Continuous</span>
+      </div>
+    </div>
+
+    <div class="section-label">Voice Constitution — Output Document</div>
+    <div class="constitution">
+      <div><span class="c-key">IDENTITY &nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-dim">Creative Agency · Indian B2B · Empathy-first thinker · Version 1.4</span></div>
+      <div><span class="c-key">GREETING &nbsp;&nbsp;&nbsp;</span><span class="c-val">First name only · Never "Dear" · Never "To Whom It May Concern"</span></div>
+      <div><span class="c-key">SIGN-OFF &nbsp;&nbsp;&nbsp;</span><span class="c-val">Thanks · Warm regards only for high tension · Never "Yours sincerely"</span></div>
+      <div><span class="c-key">FORBIDDEN &nbsp;&nbsp;</span><span class="c-val">"As per" · "Please find attached" · "Kindly" · "Do the needful"</span></div>
+      <div><span class="c-key">STRUCTURE &nbsp;&nbsp;</span><span class="c-val">Lead with warmth · Short paragraphs · Single CTA per message</span></div>
+      <div><span class="c-key">COGNITIVE &nbsp;&nbsp;</span><span class="c-val">Empathy-first · Acknowledge before asking · Context before consequence</span></div>
+      <div><span class="c-key">RHYTHM &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-val">Short. Medium. Short short. One longer flowing sentence. Short again.</span></div>
+      <div><span class="c-key">TENSION &nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-val">Never accusatory · Open door always · Consequence only after warmth fails</span></div>
+    </div>
+
+    <div class="section-label">Voice Match Game — Calibration Engine</div>
+    <div class="engine-grid">
+      <div class="engine">
+        <div class="engine-name">How It Works</div>
+        <div class="engine-desc">Agent generates Message A and B from same constitution. Each pair tests exactly one dimension. Owner taps instinct — not thinking. Five rounds. Constitution sharpens surgically per tap.</div>
+      </div>
+      <div class="engine">
+        <div class="engine-name">Five Rounds</div>
+        <div class="engine-items">
+          <div class="engine-item">Round 1 — warmth level calibration</div>
+          <div class="engine-item">Round 2 — directness calibration</div>
+          <div class="engine-item">Round 3 — opening style calibration</div>
+          <div class="engine-item">Round 4 — message length calibration</div>
+          <div class="engine-item">Round 5 — tension handling calibration</div>
+        </div>
+      </div>
+      <div class="engine">
+        <div class="engine-name">Quality Gate</div>
+        <div class="engine-items">
+          <div class="engine-item">No forbidden words present</div>
+          <div class="engine-item">Greeting matches locked pattern</div>
+          <div class="engine-item">Cognitive approach matches fingerprint</div>
+          <div class="engine-item">Length within owner's typical range</div>
+          <div class="engine-item">Fails any check → regenerates. Never sends non-compliant.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
+<!-- LAYER 2 -->
+<div class="layer-block l2-block open" onclick="toggle(this)">
+  <div class="layer-header">
+    <div class="layer-num">L — 02</div>
+    <div class="layer-title-wrap">
+      <div class="layer-name" style="color:var(--l2)">Behavioral Intelligence</div>
+      <div class="layer-tagline">Models every client as a unique human. Moves them to resolution.</div>
+    </div>
+    <div class="layer-toggle">▾</div>
+  </div>
+  <div class="layer-body">
+
+    <div class="section-label">Two Emotional Graphs</div>
+    <div class="dual-graph">
+      <div class="graph-box">
+        <div class="graph-label">Client Emotional Coordinate — Valence vs Arousal</div>
+        <div class="quadrant-grid">
+          <div class="quad q-anger"><div class="quad-name">Angry · Stressed</div><div class="quad-desc">High arousal negative. De-escalate first. Never mention money.</div></div>
+          <div class="quad q-excited"><div class="quad-name">Excited · Busy</div><div class="quad-desc">High arousal positive. Match energy. Make payment fast and frictionless.</div></div>
+          <div class="quad q-shame"><div class="quad-name">Ashamed · Withdrawn</div><div class="quad-desc">Low arousal negative. Restore dignity. Zero pressure. Patient.</div></div>
+          <div class="quad q-calm"><div class="quad-name">Calm · Trusting</div><div class="quad-desc">Target coordinate. Payment happens naturally here.<span class="target-pill">TARGET</span></div></div>
+        </div>
+      </div>
+      <div class="graph-box">
+        <div class="graph-label">Relationship Coordinate — Trust vs Warmth</div>
+        <div class="quadrant-grid">
+          <div class="quad q-ht-cold"><div class="quad-name">High Trust · Cold</div><div class="quad-desc">Long history. Formal. Direct. Don't force warmth. Professional respect.</div></div>
+          <div class="quad q-ht-warm"><div class="quad-name">High Trust · Warm</div><div class="quad-desc">Old friend. Lean on shared history. Almost anything works here.</div></div>
+          <div class="quad q-lt-cold"><div class="quad-name">Low Trust · Cold</div><div class="quad-desc">Purely transactional. New. Formal. No assumptions. Clear and professional.</div></div>
+          <div class="quad q-lt-warm"><div class="quad-name">Low Trust · Warm</div><div class="quad-desc">New but enthusiastic. Fragile relationship. Handle carefully.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Core Engines</div>
+    <div class="engine-grid">
+      <div class="engine">
+        <div class="engine-icon">📡</div>
+        <div class="engine-name">Signal Collection Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">Email open — time, device, location context</div>
+          <div class="engine-item">Reply speed — fast vs slow vs no reply</div>
+          <div class="engine-item">Message length change — shorter = disengaging</div>
+          <div class="engine-item">Payment link click without payment</div>
+          <div class="engine-item">Invoice forward — internal processing signal</div>
+          <div class="engine-item">Active elsewhere but silent on payment</div>
+        </div>
+        <span class="engine-tag">Input</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">🧬</div>
+        <div class="engine-name">Five Dimension Extractor</div>
+        <div class="engine-items">
+          <div class="engine-item">Linguistic sentiment — valence axis reading</div>
+          <div class="engine-item">Energy level — arousal axis reading</div>
+          <div class="engine-item">Engagement signal — leaning in or pulling away</div>
+          <div class="engine-item">Subtext signal — what they didn't say</div>
+          <div class="engine-item">Relationship signal — warmth shift from baseline</div>
+        </div>
+        <span class="engine-tag">Extraction</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">📍</div>
+        <div class="engine-name">Coordinate Plotter</div>
+        <div class="engine-items">
+          <div class="engine-item">Cold start — first coordinate from first reply</div>
+          <div class="engine-item">Weighted signal combination per dimension</div>
+          <div class="engine-item">Both emotional and relationship coordinates updated</div>
+          <div class="engine-item">Trajectory tracked — moving toward or away from target</div>
+          <div class="engine-item">Every interaction refines both coordinates</div>
+        </div>
+        <span class="engine-tag">Mapping</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">🌌</div>
+        <div class="engine-name">Relational Possibility Space</div>
+        <div class="engine-items">
+          <div class="engine-item">Possibility Expander — reads relationship coordinate</div>
+          <div class="engine-item">Emotional Filter — narrows from client coordinate</div>
+          <div class="engine-item">What remains = what is genuinely possible right now</div>
+          <div class="engine-item">Claude generates freely but never outside this space</div>
+          <div class="engine-item">Same emotional state → different space per relationship</div>
+        </div>
+        <span class="engine-tag">Constraint</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">🫀</div>
+        <div class="engine-name">Ruleless Intuition Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">Full human context fed to Claude — no rules given</div>
+          <div class="engine-item">Every message, silence, signal included</div>
+          <div class="engine-item">Claude feels the human — not classifies them</div>
+          <div class="engine-item">Response emerges from pure understanding</div>
+          <div class="engine-item">Cannot be reverse engineered — no rules to find</div>
+        </div>
+        <span class="engine-tag">Core</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">📐</div>
+        <div class="engine-name">Coordinate Movement Tracker</div>
+        <div class="engine-items">
+          <div class="engine-item">Did coordinate move toward target after message?</div>
+          <div class="engine-item">Positive movement → approach continues</div>
+          <div class="engine-item">No movement → intensity adjusted</div>
+          <div class="engine-item">Away movement → full recalibration triggered</div>
+          <div class="engine-item">Never repeats same approach louder if failing</div>
+        </div>
+        <span class="engine-tag">Measurement</span>
+      </div>
+    </div>
+
+    <div class="section-label">Resolution Intelligence</div>
+    <div class="resolution-row">
+      <div class="res-card res-genuine">
+        <div class="res-label">Genuine Resolution</div>
+        <div class="res-body">Agent moved client emotionally. Relationship coordinate improved. Payment came willingly. Approach weighted positively for future similar coordinate situations.</div>
+      </div>
+      <div class="res-card res-coincidental">
+        <div class="res-label">Coincidental Resolution</div>
+        <div class="res-body">Client paid regardless of agent. Would have paid anyway. No learning update. Cannot attribute outcome to approach. Approach stays neutral.</div>
+      </div>
+      <div class="res-card res-painful">
+        <div class="res-label">Painful Resolution</div>
+        <div class="res-body">Client paid to make it stop. Relationship coordinate dropped. Will not return. Approach flagged strongly negative. Human notified with full brief.</div>
+      </div>
+    </div>
+
+    <div class="section-label">Cross-Client Learning</div>
+    <div class="engine-grid">
+      <div class="engine">
+        <div class="engine-name">Network Intelligence</div>
+        <div class="engine-desc">Across thousands of clients on platform — agent learns which approaches work at specific coordinate combinations. Not types. Coordinate-specific effectiveness data. Your data moat. Cannot be replicated without your scale.</div>
+      </div>
+      <div class="engine">
+        <div class="engine-name">Human Override Intelligence</div>
+        <div class="engine-desc">Business owner context always beats algorithm. "This client is going through divorce — be gentle." "VIP — do not escalate." These override all coordinate readings. Stored permanently in client profile.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
+<!-- LAYER 3 -->
+<div class="layer-block l3-block open" onclick="toggle(this)">
+  <div class="layer-header">
+    <div class="layer-num">L — 03</div>
+    <div class="layer-title-wrap">
+      <div class="layer-name" style="color:var(--l3)">Persona</div>
+      <div class="layer-tagline">A named, trusted human presence. Owner never chases directly. Ever.</div>
+    </div>
+    <div class="layer-toggle">▾</div>
+  </div>
+  <div class="layer-body">
+
+    <div class="section-label">Identity Layer — Defined Once, Consistent Forever</div>
+    <div class="engine-grid">
+      <div class="engine">
+        <div class="engine-icon">🪪</div>
+        <div class="engine-name">Name + Role Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">Name culturally appropriate to business context</div>
+          <div class="engine-item">Indian B2B — Priya, Ananya, Rohan, Meera</div>
+          <div class="engine-item">Role specific — Accounts Manager, Client Relations</div>
+          <div class="engine-item">Role defines natural scope — payment and relationship only</div>
+          <div class="engine-item">Client never thinks to ask Priya about product decisions</div>
+        </div>
+        <span class="engine-tag">Identity</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">⚓</div>
+        <div class="engine-name">Personality Anchor Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">Three fixed traits — never change across any interaction</div>
+          <div class="engine-item">Patient — always. Even after 5 ignored messages.</div>
+          <div class="engine-item">Warm — always. Even in firm messages.</div>
+          <div class="engine-item">Professionally persistent — always. Never aggressive.</div>
+          <div class="engine-item">These are laws not moods. Persona Constitution enforces.</div>
+        </div>
+        <span class="engine-tag">Consistency</span>
+      </div>
+    </div>
+
+    <div class="section-label">Human Texture Layer</div>
+    <div class="engine-grid">
+      <div class="engine">
+        <div class="engine-icon">🎵</div>
+        <div class="engine-name">Rhythm Variation Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">Deliberate sentence length variation per message</div>
+          <div class="engine-item">Short. Medium. Short short. One longer. Short again.</div>
+          <div class="engine-item">Never uniform — AI patterning actively broken</div>
+          <div class="engine-item">Rhythm changes based on emotional context</div>
+        </div>
+        <span class="engine-tag">Naturalness</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">🎲</div>
+        <div class="engine-name">Vocabulary Unpredictability Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">Pool of synonyms and alternatives — not single words</div>
+          <div class="engine-item">Each message draws differently from pool</div>
+          <div class="engine-item">Same concept expressed differently every time</div>
+          <div class="engine-item">Regional Indian English patterns embedded naturally</div>
+          <div class="engine-item">Globally intelligible. Locally authentic.</div>
+        </div>
+        <span class="engine-tag">Authenticity</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">🌊</div>
+        <div class="engine-name">Micro Naturalness Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">Occasional sentence starting with And or But</div>
+          <div class="engine-item">Slight informality bleeding through in trusted relationships</div>
+          <div class="engine-item">Thought slightly more personal than strictly necessary</div>
+          <div class="engine-item">These signal human without being errors</div>
+          <div class="engine-item">Calibrated by relationship coordinate — more with high trust</div>
+        </div>
+        <span class="engine-tag">Human Feel</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">💬</div>
+        <div class="engine-name">Contextual Emotion Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">Not performed emotion — contextually appropriate only</div>
+          <div class="engine-item">Client mentions stress — Priya acknowledges before invoice</div>
+          <div class="engine-item">Acknowledgment is real in context even if Priya isn't</div>
+          <div class="engine-item">Emotional texture calibrated by behavioral intelligence layer</div>
+        </div>
+        <span class="engine-tag">Depth</span>
+      </div>
+    </div>
+
+    <div class="section-label">Persona Constitution — Hard Laws</div>
+    <div class="persona-const">
+      <div><span class="pc-key">NEVER &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="pc-val">claims to be human when sincerely asked</span></div>
+      <div><span class="pc-key">NEVER &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="pc-val">uses sarcasm under any circumstance</span></div>
+      <div><span class="pc-key">NEVER &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="pc-val">expresses frustration or impatience</span></div>
+      <div><span class="pc-key">NEVER &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="pc-val">contradicts what she said in previous message to same client</span></div>
+      <div><span class="pc-key">ALWAYS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="pc-val">acknowledges before asking — every single message</span></div>
+      <div><span class="pc-key">ALWAYS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="pc-val">redirects call requests gracefully to business owner</span></div>
+      <div><span class="pc-key">ALWAYS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="pc-val">passes Persona Constitution compliance check before sending</span></div>
+    </div>
+
+    <div class="section-label">Scale Execution Engines</div>
+    <div class="engine-grid">
+      <div class="engine">
+        <div class="engine-icon">🏛</div>
+        <div class="engine-name">Persona Namespace Engine</div>
+        <div class="engine-desc">Business ID + Client ID = unique interaction key. System never loads two business personas simultaneously. Complete isolation. Priya at DesignCo never bleeds into LegalEdge. Architecturally impossible to cross-contaminate.</div>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">📬</div>
+        <div class="engine-name">Persona Infrastructure Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">Real email — priya@businessdomain.com not noreply@platform</div>
+          <div class="engine-item">All replies captured, processed, responded to autonomously</div>
+          <div class="engine-item">Call requests → graceful redirect to owner always</div>
+          <div class="engine-item">LinkedIn — V2 roadmap. Never in V1.</div>
+          <div class="engine-item">Phone — never. Persona cannot handle real-time voice.</div>
+        </div>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">🔒</div>
+        <div class="engine-name">User Memory Binding Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">Every client has completely isolated memory context</div>
+          <div class="engine-item">Priya talking to Marcus — only knows Marcus</div>
+          <div class="engine-item">Context pulled by Client ID before every generation</div>
+          <div class="engine-item">Generates within that context only. Never touches others.</div>
+          <div class="engine-item">Specificity of memory is what makes Priya feel real</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
+<!-- LAYER 4 -->
+<div class="layer-block l4-block open" onclick="toggle(this)">
+  <div class="layer-header">
+    <div class="layer-num">L — 04</div>
+    <div class="layer-title-wrap">
+      <div class="layer-name" style="color:var(--l4)">Relationship Memory</div>
+      <div class="layer-tagline">Not storing data. Making the client feel known.</div>
+    </div>
+    <div class="layer-toggle">▾</div>
+  </div>
+  <div class="layer-body">
+
+    <div class="section-label">Layered Memory Architecture</div>
+    <div class="memory-stack">
+      <div class="mem-layer">
+        <div class="mem-indicator" style="background:var(--l3)"></div>
+        <div class="mem-name">Core Layer</div>
+        <div class="mem-desc">Never expires. Always active. Payment personality, relationship coordinate, key promises made, major disputes, what works with this client, communication preferences, how long they've been a client.</div>
+      </div>
+      <div class="mem-layer">
+        <div class="mem-indicator" style="background:var(--l4)"></div>
+        <div class="mem-name">Recent Layer</div>
+        <div class="mem-desc">Last 30 days. Last 5 interactions verbatim. Recent emotional coordinate readings. Recent behavioral signals. Most current relationship temperature. Always fed into generation.</div>
+      </div>
+      <div class="mem-layer">
+        <div class="mem-indicator" style="background:var(--l2)"></div>
+        <div class="mem-name">Episodic Layer</div>
+        <div class="mem-desc">Everything older than 30 days compressed into structured summaries. "October — client was going through cash flow difficulty. Responded well to instalment offer. Paid in two parts." Retrieved selectively by relevance.</div>
+      </div>
+      <div class="mem-layer">
+        <div class="mem-indicator" style="background:var(--l1)"></div>
+        <div class="mem-name">Human Detail Layer</div>
+        <div class="mem-desc">Never expires. Product launches mentioned. Team expansions shared. Difficult periods referenced. Personal context offered naturally. These are what make Priya feel like a real person who genuinely knows this client.</div>
+      </div>
+    </div>
+
+    <div class="section-label">Memory Maintenance Engines</div>
+    <div class="engine-grid">
+      <div class="engine">
+        <div class="engine-icon">⚖️</div>
+        <div class="engine-name">Relevance Scoring Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">Every memory piece gets a relevance score</div>
+          <div class="engine-item">Recency — how long ago recorded</div>
+          <div class="engine-item">Frequency — how often this context has come up</div>
+          <div class="engine-item">Emotional weight — was this a high stakes moment</div>
+          <div class="engine-item">Current applicability — does this still apply now</div>
+          <div class="engine-item">Score updates automatically after every interaction</div>
+        </div>
+        <span class="engine-tag">Scoring</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">⏳</div>
+        <div class="engine-name">Memory Decay Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">Payment history — never decays</div>
+          <div class="engine-item">Human details — decays slowly over months</div>
+          <div class="engine-item">Emotional state — decays fast. Replaced by most recent.</div>
+          <div class="engine-item">Behavioral patterns — never decays unless pattern changes</div>
+          <div class="engine-item">Dispute history — never decays regardless of age</div>
+        </div>
+        <span class="engine-tag">Decay</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">🔄</div>
+        <div class="engine-name">Memory Refresh Trigger Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">New invoice sent — full memory review, relevance rescore</div>
+          <div class="engine-item">Client replies after long silence — memory gap flagged</div>
+          <div class="engine-item">Relationship coordinate drops — full history pulled</div>
+          <div class="engine-item">New human detail shared — immediately stored in Human Layer</div>
+        </div>
+        <span class="engine-tag">Refresh</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">🛡</div>
+        <div class="engine-name">Memory Integrity Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">Pre-generation integrity check every time</div>
+          <div class="engine-item">Is anything in active memory potentially stale?</div>
+          <div class="engine-item">Is anything contradicted by recent signals?</div>
+          <div class="engine-item">Flag → element not used in generation</div>
+          <div class="engine-item">Better to not reference than to reference wrongly</div>
+        </div>
+        <span class="engine-tag">Integrity</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
+<!-- LAYER 5 -->
+<div class="layer-block l5-block open" onclick="toggle(this)">
+  <div class="layer-header">
+    <div class="layer-num">L — 05</div>
+    <div class="layer-title-wrap">
+      <div class="layer-name" style="color:var(--l5)">Ethical Transparency</div>
+      <div class="layer-tagline">Never deceives. Legally safe globally. Trust as a feature not a liability.</div>
+    </div>
+    <div class="layer-toggle">▾</div>
+  </div>
+  <div class="layer-body">
+
+    <div class="section-label">Five Transparency Levels</div>
+    <div class="engine-grid">
+      <div class="engine">
+        <div class="engine-icon">🏛</div>
+        <div class="engine-name">Structural Honesty</div>
+        <div class="engine-desc">Hard constraint in Persona Constitution. Priya never claims to be human. Ever. Under any pressure. In any context. But also never volunteers "I am an AI" unprompted — just as a human employee never volunteers they're not the owner.</div>
+        <span class="engine-tag">Level 1</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">🎭</div>
+        <div class="engine-name">Graceful Disclosure Design</div>
+        <div class="engine-items">
+          <div class="engine-item">Client sincerely asks → always answered honestly</div>
+          <div class="engine-item">"I manage all client comms for [Business]" — first response</div>
+          <div class="engine-item">If pushed — "I'm an AI assistant representing [Business]"</div>
+          <div class="engine-item">Never jarring. Never relationship destroying. Always graceful.</div>
+          <div class="engine-item">Owner reachable directly — always offered as bridge</div>
+        </div>
+        <span class="engine-tag">Level 2</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">🎚</div>
+        <div class="engine-name">Business Disclosure Control</div>
+        <div class="engine-items">
+          <div class="engine-item">Option A — Proactive: subtle footer in first message</div>
+          <div class="engine-item">Option B — Reactive: honest only if sincerely asked</div>
+          <div class="engine-item">Option C — Full: every message clearly AI-assisted marked</div>
+          <div class="engine-item">Business owner decides during onboarding</div>
+          <div class="engine-item">Never overridden by system after decision made</div>
+        </div>
+        <span class="engine-tag">Level 3</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">⚖️</div>
+        <div class="engine-name">Legal Compliance Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">Monitors jurisdiction of each business continuously</div>
+          <div class="engine-item">AI disclosure laws tracked as they evolve globally</div>
+          <div class="engine-item">Auto-updates disclosure requirements per jurisdiction</div>
+          <div class="engine-item">Business owner notified before exposure occurs</div>
+          <div class="engine-item">India, EU, US — different requirements, all handled</div>
+        </div>
+        <span class="engine-tag">Level 4</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">💎</div>
+        <div class="engine-name">Trust Dividend Engine</div>
+        <div class="engine-desc">Counter-intuitive insight. Businesses choosing proactive disclosure build MORE trust not less. Clients respect honesty. "They told me upfront" feels modern and respectful vs discovering accidentally which always feels like betrayal. Transparency becomes a competitive advantage.</div>
+        <span class="engine-tag">Level 5</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
+<!-- LAYER 6 -->
+<div class="layer-block l6-block open" onclick="toggle(this)">
+  <div class="layer-header">
+    <div class="layer-num">L — 06</div>
+    <div class="layer-title-wrap">
+      <div class="layer-name" style="color:var(--l6)">Two-Way Conversation Intelligence</div>
+      <div class="layer-tagline">Where all six layers converge. Every reply handled. Fully autonomous.</div>
+    </div>
+    <div class="layer-toggle">▾</div>
+  </div>
+  <div class="layer-body">
+
+    <div class="section-label">Eight Reply Types — Classification Engine</div>
+    <div class="reply-grid">
+      <div class="reply-card">
+        <div class="reply-type">Payment Confirmation</div>
+        <div class="reply-example">"Just sent the transfer."</div>
+        <div class="reply-action">Verify. Warm acknowledgment. Relationship strengthening close.</div>
+      </div>
+      <div class="reply-card">
+        <div class="reply-type">Promise to Pay</div>
+        <div class="reply-example">"Will sort this by Friday."</div>
+        <div class="reply-action">Graceful acceptance. Specific follow-up scheduled. Promise recorded in memory.</div>
+      </div>
+      <div class="reply-card">
+        <div class="reply-type">Partial Payment Signal</div>
+        <div class="reply-example">"Can I pay half now?"</div>
+        <div class="reply-action">Intelligent negotiation within business parameters. Options presented.</div>
+      </div>
+      <div class="reply-card">
+        <div class="reply-type">Dispute Signal</div>
+        <div class="reply-example">"I don't think this amount is right."</div>
+        <div class="reply-action">Immediate de-escalation. Door fully opened. Human flagged with full context.</div>
+      </div>
+      <div class="reply-card">
+        <div class="reply-type">Delay Request</div>
+        <div class="reply-example">"Going through difficult time."</div>
+        <div class="reply-action">Empathy first. Zero pressure. Flexibility offered within parameters.</div>
+      </div>
+      <div class="reply-card">
+        <div class="reply-type">Deflection</div>
+        <div class="reply-example">"I'll check with accounts team."</div>
+        <div class="reply-action">Patience. Specific follow-up. Gentle accountability. Subtext read for real meaning.</div>
+      </div>
+      <div class="reply-card">
+        <div class="reply-type">Aggression</div>
+        <div class="reply-example">"Stop sending me these emails."</div>
+        <div class="reply-action">Immediate de-escalation. Tone shifts completely. Human flagged if continues.</div>
+      </div>
+      <div class="reply-card">
+        <div class="reply-type">Ghost Breaking</div>
+        <div class="reply-example">Responds after long silence.</div>
+        <div class="reply-action">Warm re-engagement. No reference to silence. Fresh start energy completely.</div>
+      </div>
+    </div>
+
+    <div class="section-label">Core Conversation Engines</div>
+    <div class="engine-grid">
+      <div class="engine">
+        <div class="engine-icon">🔍</div>
+        <div class="engine-name">Subtext Reading Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">"Checking with accounts" often means cash flow problem</div>
+          <div class="engine-item">"Amount seems wrong" often means delivery dispute</div>
+          <div class="engine-item">"Will pay Friday" with 3 broken promises = high risk</div>
+          <div class="engine-item">Cross-references literal content + emotional texture + memory + behavioral pattern</div>
+          <div class="engine-item">Feeds directly into behavioral intelligence — coordinates updated</div>
+        </div>
+        <span class="engine-tag">Depth</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">📋</div>
+        <div class="engine-name">Five-Step Response Protocol</div>
+        <div class="engine-items">
+          <div class="engine-item">Step 1 — Acknowledge first. Always. No exception.</div>
+          <div class="engine-item">Step 2 — Respond to subtext not just surface</div>
+          <div class="engine-item">Step 3 — Move situation forward by one step only</div>
+          <div class="engine-item">Step 4 — Leave door open. Never create dead ends.</div>
+          <div class="engine-item">Step 5 — Brand voice applied last. Quality gate runs.</div>
+        </div>
+        <span class="engine-tag">Protocol</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">🤝</div>
+        <div class="engine-name">Negotiation Intelligence Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">Business sets parameters during onboarding</div>
+          <div class="engine-item">Max extension — 14 / 30 / flexible days</div>
+          <div class="engine-item">Instalment plans — yes / no / above X amount only</div>
+          <div class="engine-item">Dispute authority — below X autonomous / above X human</div>
+          <div class="engine-item">Negotiates within parameters. Never exceeds. Never exposes.</div>
+        </div>
+        <span class="engine-tag">Negotiation</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">🧵</div>
+        <div class="engine-name">Thread Context Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">Full conversation thread read before every generation</div>
+          <div class="engine-item">Priya never contradicts herself across turns</div>
+          <div class="engine-item">Priya never forgets what was agreed two messages ago</div>
+          <div class="engine-item">Priya never repeats what client already addressed</div>
+          <div class="engine-item">Thread context is sacred. Never broken.</div>
+        </div>
+        <span class="engine-tag">Continuity</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">🚨</div>
+        <div class="engine-name">Escalation Intelligence Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">Client requests human → immediate. No delay ever.</div>
+          <div class="engine-item">Dispute above threshold → human takes over gracefully</div>
+          <div class="engine-item">Legal threat mentioned → agent goes silent immediately</div>
+          <div class="engine-item">Emotional crisis → pure empathy only. No invoice mention.</div>
+          <div class="engine-item">3 turns no forward movement → human review triggered</div>
+          <div class="engine-item">Human receives complete brief — never walks in cold</div>
+        </div>
+        <span class="engine-tag">Escalation</span>
+      </div>
+      <div class="engine">
+        <div class="engine-icon">🌅</div>
+        <div class="engine-name">Conversation Closure Engine</div>
+        <div class="engine-items">
+          <div class="engine-item">Acknowledge resolution — confirm what was agreed</div>
+          <div class="engine-item">Relationship strengthening close — leave warmer than started</div>
+          <div class="engine-item">Forward bridge — natural reference to future work</div>
+          <div class="engine-item">Memory updated with human details from conversation</div>
+          <div class="engine-item">Resolution Intelligence scores the outcome</div>
+        </div>
+        <span class="engine-tag">Closure</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="connector">↓</div>
+
+<!-- CONVERGENCE -->
+<div class="layer-block convergence-block open" onclick="toggle(this)">
+  <div class="layer-header">
+    <div class="layer-num">FULL</div>
+    <div class="layer-title-wrap">
+      <div class="layer-name" style="background:linear-gradient(90deg,var(--l1),var(--l2),var(--l3),var(--l4),var(--l5),var(--l6));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">End-to-End Pipeline</div>
+      <div class="layer-tagline">Every layer. Every engine. One seamless flow. Fully autonomous.</div>
+    </div>
+    <div class="layer-toggle">▾</div>
+  </div>
+  <div class="layer-body">
+    <div class="pipeline">
+      <div class="pipe-step ps-all">
+        <div class="pipe-num">0</div>
+        <div class="pipe-content">
+          <div class="pipe-title">Invoice overdue detected</div>
+          <div class="pipe-sub">System activates. All six layers initialize simultaneously.</div>
+        </div>
+        <span class="pipe-layer-badge">System</span>
+      </div>
+      <div class="pipe-step ps-l4">
+        <div class="pipe-num">1</div>
+        <div class="pipe-content">
+          <div class="pipe-title">Relationship Memory loads</div>
+          <div class="pipe-sub">Core + Recent + Episodic + Human layers pulled. Integrity check runs. Stale memory flagged and excluded.</div>
+        </div>
+        <span class="pipe-layer-badge">L4</span>
+      </div>
+      <div class="pipe-step ps-l2">
+        <div class="pipe-num">2</div>
+        <div class="pipe-content">
+          <div class="pipe-title">Client emotional coordinate plotted</div>
+          <div class="pipe-sub">Five dimension extractor runs on all available signals. Cold start if first interaction. Trajectory calculated from history.</div>
+        </div>
+        <span class="pipe-layer-badge">L2</span>
+      </div>
+      <div class="pipe-step ps-l2">
+        <div class="pipe-num">3</div>
+        <div class="pipe-content">
+          <div class="pipe-title">Relationship coordinate read</div>
+          <div class="pipe-sub">Trust + warmth graph positioned. Trajectory checked. Both coordinates ready.</div>
+        </div>
+        <span class="pipe-layer-badge">L2</span>
+      </div>
+      <div class="pipe-step ps-l2">
+        <div class="pipe-num">4</div>
+        <div class="pipe-content">
+          <div class="pipe-title">Relational Possibility Space derived</div>
+          <div class="pipe-sub">Possibility Expander + Emotional Filter run. Space defined. What is genuinely possible right now with this human.</div>
+        </div>
+        <span class="pipe-layer-badge">L2</span>
+      </div>
+      <div class="pipe-step ps-l2">
+        <div class="pipe-num">5</div>
+        <div class="pipe-content">
+          <div class="pipe-title">Ruleless Intuition Engine activated</div>
+          <div class="pipe-sub">Full human context fed to Claude. No rules. No playbooks. Claude feels the human. Message strategy emerges from pure understanding.</div>
+        </div>
+        <span class="pipe-layer-badge">L2</span>
+      </div>
+      <div class="pipe-step ps-l3">
+        <div class="pipe-num">6</div>
+        <div class="pipe-content">
+          <div class="pipe-title">Persona layer activated</div>
+          <div class="pipe-sub">Priya's identity loaded. Namespace confirmed. Memory binding active. Human texture engines ready. Persona Constitution laws enforced.</div>
+        </div>
+        <span class="pipe-layer-badge">L3</span>
+      </div>
+      <div class="pipe-step ps-l5">
+        <div class="pipe-num">7</div>
+        <div class="pipe-content">
+          <div class="pipe-title">Ethical Transparency monitored</div>
+          <div class="pipe-sub">Business disclosure level applied. Legal jurisdiction checked. Structural honesty constraints active throughout generation.</div>
+        </div>
+        <span class="pipe-layer-badge">L5</span>
+      </div>
+      <div class="pipe-step ps-l1">
+        <div class="pipe-num">8</div>
+        <div class="pipe-content">
+          <div class="pipe-title">Voice Constitution applied</div>
+          <div class="pipe-sub">Five level analyzers inform generation. Vocabulary bank active. Cognitive fingerprint governs structure. Rhythm variation engine runs.</div>
+        </div>
+        <span class="pipe-layer-badge">L1</span>
+      </div>
+      <div class="pipe-step ps-l1">
+        <div class="pipe-num">9</div>
+        <div class="pipe-content">
+          <div class="pipe-title">Quality Gate runs</div>
+          <div class="pipe-sub">Voice Constitution compliance check. Persona Constitution compliance check. Fails either → regenerates. Never sends non-compliant message.</div>
+        </div>
+        <span class="pipe-layer-badge">L1 + L3</span>
+      </div>
+      <div class="pipe-step ps-all">
+        <div class="pipe-num">10</div>
+        <div class="pipe-content">
+          <div class="pipe-title">Message sent from Priya's real email</div>
+          <div class="pipe-sub">priya@businessdomain.com — not a platform address. Feels completely real to client.</div>
+        </div>
+        <span class="pipe-layer-badge">Infrastructure</span>
+      </div>
+      <div class="pipe-step ps-l6">
+        <div class="pipe-num">11</div>
+        <div class="pipe-content">
+          <div class="pipe-title">Client reply received — all layers activate simultaneously</div>
+          <div class="pipe-sub">Reply classified. Subtext read. Coordinates updated. Possibility space recalculated. Thread context maintained. Negotiation parameters checked. Escalation assessed.</div>
+        </div>
+        <span class="pipe-layer-badge">L6 + All</span>
+      </div>
+      <div class="pipe-step ps-l6">
+        <div class="pipe-num">12</div>
+        <div class="pipe-content">
+          <div class="pipe-title">Five-step response protocol executed</div>
+          <div class="pipe-sub">Acknowledge → respond to subtext → one step forward → leave door open → brand voice applied. Quality gate. Sent.</div>
+        </div>
+        <span class="pipe-layer-badge">L6</span>
+      </div>
+      <div class="pipe-step ps-l2">
+        <div class="pipe-num">13</div>
+        <div class="pipe-content">
+          <div class="pipe-title">Coordinate movement measured</div>
+          <div class="pipe-sub">Did client move toward target? Approach working or needs recalibration? Cross-client learning network updated.</div>
+        </div>
+        <span class="pipe-layer-badge">L2</span>
+      </div>
+      <div class="pipe-step ps-l4">
+        <div class="pipe-num">14</div>
+        <div class="pipe-content">
+          <div class="pipe-title">Memory updated</div>
+          <div class="pipe-sub">Human details from conversation stored. Relevance scores updated. Decay timers reset where relevant. Episodic layer compressed if needed.</div>
+        </div>
+        <span class="pipe-layer-badge">L4</span>
+      </div>
+      <div class="pipe-step ps-all">
+        <div class="pipe-num">15</div>
+        <div class="pipe-content">
+          <div class="pipe-title">Resolution Intelligence scores outcome</div>
+          <div class="pipe-sub">Genuine vs Coincidental vs Painful. System learns. Relationship coordinate updated. Owner notified only if painful resolution or escalation needed.</div>
+        </div>
+        <span class="pipe-layer-badge">All Layers</span>
+      </div>
+      <div class="pipe-step ps-l6">
+        <div class="pipe-num">16</div>
+        <div class="pipe-content">
+          <div class="pipe-title">Conversation closure</div>
+          <div class="pipe-sub">Acknowledge resolution. Strengthen relationship. Bridge to future. Client leaves feeling better than when they started. Money recovered. Relationship intact.</div>
+        </div>
+        <span class="pipe-layer-badge">L6</span>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:28px">The Promise</div>
+    <div style="background:#070a10;border:1px solid var(--border2);border-radius:10px;padding:20px;margin-top:8px;font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:15px;color:var(--muted2);line-height:1.9;text-align:center;">
+      Money comes in. Clients stay happy.<br>
+      Owner never had that awkward conversation. Ever.<br>
+      <span style="color:var(--text);font-size:13px;">Not an invoice tool. The first AI business representative.</span>
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+<script>
+function toggle(el) {
+  el.classList.toggle('open');
+}
+</script>
+
+</body>
+</html>

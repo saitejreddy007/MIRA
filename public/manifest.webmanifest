@@ -1,0 +1,17 @@
+{
+  "name": "MIRA — AI Business Representative",
+  "short_name": "MIRA",
+  "description": "Auto-follow up on overdue invoices in your voice.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFAF7",
+  "theme_color": "#22C55E",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
