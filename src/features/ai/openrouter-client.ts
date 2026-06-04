@@ -6,9 +6,10 @@ const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 // Model fallback chain: try primary, then fallbacks on 429/5xx
 const MODEL_CHAIN = [
-  process.env.OPENROUTER_MODEL || 'google/gemma-4-31b-it:free',
-  'meta-llama/llama-4-scout:free',
-  'qwen/qwen3-coder:free',
+  process.env.OPENROUTER_MODEL || 'openai/gpt-oss-120b:free',
+  'z-ai/glm-4.5-air:free',
+  'openai/gpt-oss-20b:free',
+  'google/gemma-4-31b-it:free',
 ];
 
 let apiKey: string | null = null;
