@@ -3,7 +3,7 @@ import { retryWithBackoff } from '@/lib/retry';
 import { sanitizeError, safeUpstreamError } from '@/lib/errors/sanitize';
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const DEFAULT_MODEL = 'openrouter/gpt-oss-120b';
+const DEFAULT_MODEL = 'google/gemma-4-31b-it:free';
 
 let apiKey: string | null = null;
 
@@ -77,7 +77,9 @@ export async function generateJson<T>(
   }
 
   if (!response.ok) {
-    logger.error({ status: response.status, statusText: response.statusText }, 'openrouter non-OK response');
+    let errorBody = '';
+    try { errorBody = await response.text(); } catch { /* ignore */ }
+    logger.error({ status: response.status, statusText: response.statusText, body: errorBody.slice(0, 500) }, 'openrouter non-OK response');
     const sanitized = safeUpstreamError(response, 'openrouter');
     throw new OpenRouterError(response.status, sanitized.message);
   }
