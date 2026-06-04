@@ -173,6 +173,7 @@ export default function OnboardingQuestionsPage() {
             onBack={step > 0 ? handleBack : undefined}
             isFirst={step === 0}
             isLast={isLast}
+            isSubmitting={isSubmitting}
           />
         </Card>
 
