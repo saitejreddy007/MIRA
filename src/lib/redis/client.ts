@@ -10,6 +10,8 @@ function getClient(): Redis {
     throw new Error('UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN must be set');
   }
   client = new Redis({ url, token });
+  // Force a fresh Vercel deployment to pick up the new environment variables
+  console.log('Redis client initialized');
   return client;
 }
 
