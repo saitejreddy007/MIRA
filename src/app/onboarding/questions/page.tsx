@@ -130,9 +130,6 @@ export default function OnboardingQuestionsPage() {
         return;
       }
       
-      // Fire-and-forget generation so the user doesn't wait
-      getCalibrationRounds().catch(console.error);
-      
       router.push('/onboarding/integrations');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
