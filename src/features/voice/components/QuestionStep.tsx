@@ -32,6 +32,7 @@ export function QuestionStep({
   onBack,
   isFirst,
   isLast,
+  isSubmitting,
 }: QuestionStepProps) {
   return (
     <div className="space-y-6">
