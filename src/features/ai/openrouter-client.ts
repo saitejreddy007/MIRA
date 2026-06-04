@@ -3,7 +3,7 @@ import { retryWithBackoff } from '@/lib/retry';
 import { sanitizeError, safeUpstreamError } from '@/lib/errors/sanitize';
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const DEFAULT_MODEL = 'openrouter/gpt-oss-120b';
+const DEFAULT_MODEL = 'google/gemini-2.0-flash-001';
 
 let apiKey: string | null = null;
 
