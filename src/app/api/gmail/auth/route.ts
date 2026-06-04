@@ -24,10 +24,11 @@ export async function GET(request: NextRequest) {
 
   const source = request.nextUrl.searchParams.get('source') || 'settings';
   const statePayload = Buffer.from(JSON.stringify({ biz: user.business_id, source })).toString('base64');
+  const redirectUri = process.env.GOOGLE_REDIRECT_URI || `${origin}/api/gmail/callback`;
 
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID || '',
-    redirect_uri: process.env.GOOGLE_REDIRECT_URI || '',
+    redirect_uri: redirectUri,
     response_type: 'code',
     scope: 'https://www.googleapis.com/auth/gmail.send',
     access_type: 'offline',
