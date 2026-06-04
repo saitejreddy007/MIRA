@@ -4,8 +4,6 @@ import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { QuestionStep } from '@/features/voice/components/QuestionStep';
-import { submitVoiceAnswers } from '@/features/voice/actions/submit-answers';
-import { getCalibrationRounds } from '@/features/voice/actions/submit-voice-match';
 import type { VoiceAnswers } from '@/features/voice/types';
 import { ChevronLeft } from 'lucide-react';
 
@@ -124,9 +122,16 @@ export default function OnboardingQuestionsPage() {
     setIsSubmitting(true);
     setError(null);
     try {
-      const result = await submitVoiceAnswers(answers);
-      if (result?.error) {
-        setError(result.error);
+      const response = await fetch('/api/voice/submit-answers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(answers),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || result?.error) {
+        setError(result?.error || 'Something went wrong');
         return;
       }
       
