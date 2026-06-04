@@ -3,7 +3,13 @@ import { retryWithBackoff } from '@/lib/retry';
 import { sanitizeError, safeUpstreamError } from '@/lib/errors/sanitize';
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const DEFAULT_MODEL = 'google/gemma-4-31b-it:free';
+
+// Model fallback chain: try primary, then fallbacks on 429/5xx
+const MODEL_CHAIN = [
+  process.env.OPENROUTER_MODEL || 'google/gemma-4-31b-it:free',
+  'meta-llama/llama-4-scout:free',
+  'qwen/qwen3-coder:free',
+];
 
 let apiKey: string | null = null;
 
@@ -32,7 +38,10 @@ export class OpenRouterError extends Error {
   }
 }
 
-async function callOpenRouter(messages: { role: string; content: string }[]): Promise<Response> {
+async function callOpenRouterWithModel(
+  messages: { role: string; content: string }[],
+  model: string
+): Promise<Response> {
   return fetch(OPENROUTER_URL, {
     method: 'POST',
     headers: {
@@ -40,7 +49,7 @@ async function callOpenRouter(messages: { role: string; content: string }[]): Pr
       Authorization: `Bearer ${getApiKey()}`,
     },
     body: JSON.stringify({
-      model: DEFAULT_MODEL,
+      model,
       messages,
       response_format: { type: 'json_object' },
       temperature: 0.7,
@@ -61,19 +70,63 @@ export async function generateJson<T>(
 
   messages.push({ role: 'user', content: prompt });
 
-  let response: Response;
-  try {
-    response = await retryWithBackoff(() => callOpenRouter(messages), {
-      maxAttempts: 3,
-      initialDelayMs: 800,
-      onRetry: (attempt, err, nextDelay) => {
-        logger.warn({ attempt, nextDelay, err: err instanceof Error ? err.message : String(err) }, 'openrouter retry');
-      },
-    });
-  } catch (networkErr) {
-    logger.error({ err: networkErr instanceof Error ? networkErr.message : String(networkErr) }, 'openrouter network failure');
-    const sanitized = sanitizeError(networkErr, 'openrouter');
-    throw new OpenRouterError(0, sanitized.message);
+  let response: Response | null = null;
+  let lastError: unknown = null;
+
+  // Try each model in the fallback chain
+  for (const model of MODEL_CHAIN) {
+    try {
+      response = await retryWithBackoff(
+        async () => {
+          const res = await callOpenRouterWithModel(messages, model);
+          // Throw on retryable status codes so retryWithBackoff can retry
+          if (res.status === 429 || (res.status >= 500 && res.status < 600)) {
+            let body = '';
+            try { body = await res.text(); } catch { /* ignore */ }
+            logger.warn({ model, status: res.status, body: body.slice(0, 200) }, 'openrouter retryable error');
+            const err = new OpenRouterError(res.status, `HTTP ${res.status}`);
+            throw err;
+          }
+          return res;
+        },
+        {
+          maxAttempts: 2,
+          initialDelayMs: 1500,
+          onRetry: (attempt, err, nextDelay) => {
+            logger.warn({ model, attempt, nextDelay, err: err instanceof Error ? err.message : String(err) }, 'openrouter retry');
+          },
+        }
+      );
+
+      // If we got a non-429/5xx response, check if it's usable
+      if (response.ok) {
+        logger.info({ model }, 'openrouter model succeeded');
+        break;
+      }
+
+      // Non-retryable error (400, 401, 403, 404) — try next model
+      if (response.status === 400 || response.status === 404) {
+        let body = '';
+        try { body = await response.text(); } catch { /* ignore */ }
+        logger.warn({ model, status: response.status, body: body.slice(0, 200) }, 'openrouter model unavailable, trying next');
+        response = null;
+        continue;
+      }
+
+      // Other non-OK status — break and report error
+      break;
+    } catch (err) {
+      lastError = err;
+      logger.warn({ model, err: err instanceof Error ? err.message : String(err) }, 'openrouter model exhausted retries, trying next');
+      response = null;
+      continue;
+    }
+  }
+
+  if (!response) {
+    const errMsg = lastError instanceof Error ? lastError.message : 'All AI models failed';
+    logger.error({ err: errMsg }, 'openrouter all models failed');
+    throw new OpenRouterError(0, 'AI generation failed after trying all available models. Please try again in a minute.');
   }
 
   if (!response.ok) {
